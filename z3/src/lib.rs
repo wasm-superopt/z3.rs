@@ -13,6 +13,7 @@ extern crate z3_sys;
 #[cfg(feature = "arbitrary-size-numeral")]
 extern crate num;
 
+use std::collections::HashMap;
 use std::ffi::CString;
 use std::sync::Mutex;
 use z3_sys::*;
@@ -20,6 +21,7 @@ use z3_sys::*;
 pub mod ast;
 mod config;
 mod context;
+mod datatype;
 mod datatype_builder;
 mod func_decl;
 mod model;
@@ -158,6 +160,17 @@ pub struct DatatypeBuilder<'ctx> {
     ctx: &'ctx Context,
     // num_fields and constructor
     variants: Vec<(usize, Z3_constructor)>,
+}
+
+pub enum DatatypeAccessor<'ctx> {
+    Dtype(Datatype<'ctx>),
+    Srt(Sort<'ctx>),
+}
+
+pub struct Datatype<'ctx> {
+    ctx: &'ctx Context,
+    name: Symbol,
+    constructors: HashMap<String, Vec<(String, &'ctx DatatypeAccessor<'ctx>)>>,
 }
 
 pub struct DatatypeVariant<'ctx> {
