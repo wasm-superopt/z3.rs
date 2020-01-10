@@ -162,7 +162,7 @@ pub struct FuncDecl<'ctx> {
 // }
 
 pub enum DatatypeAccessor<'ctx> {
-    Dtype(DatatypeBuilder<'ctx>),
+    Dtype(Symbol),
     Srt(Sort<'ctx>),
 }
 

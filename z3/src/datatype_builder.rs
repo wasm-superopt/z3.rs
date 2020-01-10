@@ -5,7 +5,7 @@ use {
     Symbol,
 };
 
-pub fn create_datatypes<'ctx>(ds: &[DatatypeBuilder<'ctx>]) -> Vec<DatatypeSort<'ctx>> {
+pub fn create_datatypes<'ctx>(ds: &[&DatatypeBuilder<'ctx>]) -> Vec<DatatypeSort<'ctx>> {
     let ctx: &'ctx Context = ds[0].ctx;
     let num = ds.len();
 
@@ -33,10 +33,9 @@ pub fn create_datatypes<'ctx>(ds: &[DatatypeBuilder<'ctx>]) -> Vec<DatatypeSort<
             for (fname, accessor) in fs {
                 field_names.push(Symbol::String(fname.clone()).as_z3_symbol(ctx));
                 match accessor {
-                    DatatypeAccessor::Dtype(datatype) => {
+                    DatatypeAccessor::Dtype(dtype_name) => {
                         field_sorts.push(std::ptr::null_mut());
 
-                        let dtype_name = &datatype.name;
                         let matching_names: Vec<_> = ds
                             .iter()
                             .enumerate()
@@ -152,7 +151,7 @@ impl<'ctx> DatatypeBuilder<'ctx> {
         }
     }
 
-    pub fn variant(mut self, name: &str, fields: &'ctx [(&str, &DatatypeAccessor<'ctx>)]) {
+    pub fn variant(&mut self, name: &str, fields: &'ctx [(&str, &DatatypeAccessor<'ctx>)]) {
         let mut accessor_vec: Vec<(String, &DatatypeAccessor<'ctx>)> = Vec::new();
         for (accessor_name, accessor) in fields {
             accessor_vec.push((accessor_name.to_string(), accessor));
@@ -161,7 +160,7 @@ impl<'ctx> DatatypeBuilder<'ctx> {
         self.constructors.push((name.to_string(), accessor_vec));
     }
 
-    pub fn finish(self) -> DatatypeSort<'ctx> {
+    pub fn finish(&self) -> DatatypeSort<'ctx> {
         create_datatypes(&[self]).remove(0)
     }
 }

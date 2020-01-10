@@ -373,3 +373,20 @@ fn test_optimize_unknown() {
     assert_eq!(optimize.check(&[]), SatResult::Unknown);
     assert!(optimize.get_reason_unknown().is_some());
 }
+
+#[test]
+fn test_recursive_datatype() {
+    let _ = env_logger::try_init();
+    let cfg = Config::new();
+    let ctx = Context::new(&cfg);
+
+    let mut list_builder = DatatypeBuilder::new(&ctx, "List");
+    list_builder.variant("nil", &[]);
+    let accessors = [
+        ("car", &DatatypeAccessor::Srt(Sort::int(&ctx))),
+        ("cdr", &DatatypeAccessor::Dtype("List".into())),
+    ];
+    list_builder.variant("cons", &accessors);
+
+    let list_sort = list_builder.finish();
+}
