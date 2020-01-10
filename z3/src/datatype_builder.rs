@@ -1,7 +1,9 @@
-use std::collections::HashMap;
 use std::{convert::TryInto, ptr::null_mut};
 use z3_sys::*;
-use {Context, DatatypeBuilder, DatatypeAccessor, DatatypeSort, DatatypeVariant, FuncDecl, Sort, Symbol};
+use {
+    Context, DatatypeAccessor, DatatypeBuilder, DatatypeSort, DatatypeVariant, FuncDecl, Sort,
+    Symbol,
+};
 
 pub fn create_datatypes<'ctx>(ds: &[DatatypeBuilder<'ctx>]) -> Vec<DatatypeSort<'ctx>> {
     let ctx: &'ctx Context = ds[0].ctx;
@@ -146,7 +148,7 @@ impl<'ctx> DatatypeBuilder<'ctx> {
         Self {
             ctx,
             name: name.into(),
-            constructors: HashMap::new(),
+            constructors: Vec::new(),
         }
     }
 
@@ -156,7 +158,7 @@ impl<'ctx> DatatypeBuilder<'ctx> {
             accessor_vec.push((accessor_name.to_string(), accessor));
         }
 
-        self.constructors.insert(name.to_string(), accessor_vec);
+        self.constructors.push((name.to_string(), accessor_vec));
     }
 
     pub fn finish(self) -> DatatypeSort<'ctx> {

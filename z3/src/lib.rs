@@ -169,7 +169,7 @@ pub enum DatatypeAccessor<'ctx> {
 pub struct DatatypeBuilder<'ctx> {
     ctx: &'ctx Context,
     name: Symbol,
-    constructors: HashMap<String, Vec<(String, &'ctx DatatypeAccessor<'ctx>)>>,
+    constructors: Vec<(String, Vec<(String, &'ctx DatatypeAccessor<'ctx>)>)>,
 }
 
 pub struct DatatypeVariant<'ctx> {
