@@ -21,7 +21,6 @@ use z3_sys::*;
 pub mod ast;
 mod config;
 mod context;
-mod datatype;
 mod datatype_builder;
 mod func_decl;
 mod model;
@@ -156,18 +155,18 @@ pub struct FuncDecl<'ctx> {
 /// let ast = option_int.variants[1].accessors[0].apply(&[&y.into()]);
 /// assert_eq!(3, model.eval(&ast.as_int().unwrap()).unwrap().as_i64().unwrap());
 /// ```
-pub struct DatatypeBuilder<'ctx> {
-    ctx: &'ctx Context,
-    // num_fields and constructor
-    variants: Vec<(usize, Z3_constructor)>,
-}
+// pub struct DatatypeBuilder<'ctx> {
+//     ctx: &'ctx Context,
+//     // num_fields and constructor
+//     variants: Vec<(usize, Z3_constructor)>,
+// }
 
 pub enum DatatypeAccessor<'ctx> {
-    Dtype(Datatype<'ctx>),
+    Dtype(DatatypeBuilder<'ctx>),
     Srt(Sort<'ctx>),
 }
 
-pub struct Datatype<'ctx> {
+pub struct DatatypeBuilder<'ctx> {
     ctx: &'ctx Context,
     name: Symbol,
     constructors: HashMap<String, Vec<(String, &'ctx DatatypeAccessor<'ctx>)>>,
