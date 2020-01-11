@@ -1,4 +1,5 @@
-use std::{convert::TryInto, ptr::null_mut};
+use std::mem;
+use std::{convert::TryInto};
 use z3_sys::*;
 use {
     Context, DatatypeAccessor, DatatypeBuilder, DatatypeSort, DatatypeVariant, FuncDecl, Sort,
@@ -11,9 +12,8 @@ pub fn create_datatypes<'ctx>(ds: &[&DatatypeBuilder<'ctx>]) -> Vec<DatatypeSort
 
     assert!(num > 0, "input ds empty");
     let mut names: Vec<Z3_symbol> = Vec::with_capacity(num);
-    let mut out: Vec<Z3_sort> = Vec::with_capacity(num);
-
-    let out_ptr = out.as_mut_ptr();
+    let out: Vec<Z3_sort> = Vec::with_capacity(num);
+    let mut out = mem::ManuallyDrop::new(out);
     let mut clists: Vec<Z3_constructor_list> = Vec::with_capacity(num);
 
     for d in ds.iter() {
@@ -90,16 +90,16 @@ pub fn create_datatypes<'ctx>(ds: &[&DatatypeBuilder<'ctx>]) -> Vec<DatatypeSort
             ctx.z3_ctx,
             num.try_into().unwrap(),
             names.as_ptr(),
-            out_ptr,
+            out.as_mut_ptr(),
             clists.as_mut_ptr(),
         );
     };
 
-    let mut rebuilt: Vec<Z3_sort> = unsafe {
-        Vec::from_raw_parts(out_ptr, num, num)
-    };
+    println!("returned from z3_mk_datatypes");
 
-    assert!(rebuilt.len() > 0, "Empty rebuilt vec");
+    let rebuilt = unsafe { Vec::from_raw_parts(out.as_mut_ptr(), num, num) };
+
+    assert!(rebuilt.len() > 0, "empty rebuilt vec.");
 
     let mut datatype_sorts: Vec<DatatypeSort<'ctx>> = Vec::with_capacity(rebuilt.len());
     for i in 0..rebuilt.len() {
@@ -114,36 +114,34 @@ pub fn create_datatypes<'ctx>(ds: &[&DatatypeBuilder<'ctx>]) -> Vec<DatatypeSort
 
         for (j, (cname, fs)) in d.constructors.iter().enumerate() {
             let num_fs = fs.len();
-            let constructor_func: Z3_func_decl =
-                unsafe { Z3_get_datatype_sort_constructor(ctx.z3_ctx, s, j.try_into().unwrap()) };
-            let tester =
-                unsafe { Z3_get_datatype_sort_recognizer(ctx.z3_ctx, s, j.try_into().unwrap()) };
-            let mut accessors: Vec<Z3_func_decl> = Vec::new();
-            accessors.resize(num_fs, null_mut());
+            let constructor: FuncDecl<'ctx> = unsafe {
+                let f: Z3_func_decl =
+                    Z3_get_datatype_sort_constructor(ctx.z3_ctx, s, j.try_into().unwrap());
+                FuncDecl::from_raw(ctx, f)
+            };
+            let tester = unsafe {
+                let f: Z3_func_decl =
+                    Z3_get_datatype_sort_recognizer(ctx.z3_ctx, s, j.try_into().unwrap());
+                FuncDecl::from_raw(ctx, f)
+            };
+            let mut accessors: Vec<FuncDecl<'ctx>> = Vec::new();
             for k in 0..num_fs {
                 accessors.push(unsafe {
-                    Z3_get_datatype_sort_constructor_accessor(
+                    let f: Z3_func_decl = Z3_get_datatype_sort_constructor_accessor(
                         ctx.z3_ctx,
                         s,
                         j.try_into().unwrap(),
                         k.try_into().unwrap(),
-                    )
+                    );
+
+                    FuncDecl::from_raw(ctx, f)
                 })
             }
 
-            variants.push(unsafe {
-                let constructor = FuncDecl::from_raw(ctx, constructor_func);
-                let tester = FuncDecl::from_raw(ctx, tester);
-                let accessors = accessors
-                    .iter()
-                    .map(|f| FuncDecl::from_raw(ctx, *f))
-                    .collect();
-
-                DatatypeVariant {
-                    constructor,
-                    tester,
-                    accessors,
-                }
+            variants.push(DatatypeVariant {
+                constructor,
+                tester,
+                accessors,
             });
         }
 
@@ -166,7 +164,7 @@ impl<'ctx> DatatypeBuilder<'ctx> {
         }
     }
 
-    pub fn variant(&mut self, name: &str, fields: &'ctx [(&str, &DatatypeAccessor<'ctx>)]) {
+    pub fn variant(&mut self, name: &str, fields: &'ctx [(&str, DatatypeAccessor<'ctx>)]) {
         let mut accessor_vec: Vec<(String, &DatatypeAccessor<'ctx>)> = Vec::new();
         for (accessor_name, accessor) in fields {
             accessor_vec.push((accessor_name.to_string(), accessor));
@@ -176,6 +174,7 @@ impl<'ctx> DatatypeBuilder<'ctx> {
     }
 
     pub fn finish(&self) -> DatatypeSort<'ctx> {
+        println!("in finish");
         let mut dtypes = create_datatypes(&[self]);
         assert!(dtypes.len() > 0);
         dtypes.remove(0)

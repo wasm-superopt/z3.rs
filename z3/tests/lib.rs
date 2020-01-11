@@ -383,8 +383,8 @@ fn test_recursive_datatype() {
     let mut list_builder = DatatypeBuilder::new(&ctx, "List");
     list_builder.variant("nil", &[]);
     let accessors = [
-        ("car", &DatatypeAccessor::Srt(Sort::int(&ctx))),
-        ("cdr", &DatatypeAccessor::Dtype("List".into())),
+        ("car", DatatypeAccessor::Srt(Sort::int(&ctx))),
+        ("cdr", DatatypeAccessor::Dtype("List".into())),
     ];
     list_builder.variant("cons", &accessors);
 
