@@ -9,8 +9,11 @@ pub fn create_datatypes<'ctx>(ds: &[&DatatypeBuilder<'ctx>]) -> Vec<DatatypeSort
     let ctx: &'ctx Context = ds[0].ctx;
     let num = ds.len();
 
+    assert!(num > 0, "input ds empty");
     let mut names: Vec<Z3_symbol> = Vec::with_capacity(num);
     let mut out: Vec<Z3_sort> = Vec::with_capacity(num);
+
+    let out_ptr = out.as_mut_ptr();
     let mut clists: Vec<Z3_constructor_list> = Vec::with_capacity(num);
 
     for d in ds.iter() {
@@ -71,24 +74,36 @@ pub fn create_datatypes<'ctx>(ds: &[&DatatypeBuilder<'ctx>]) -> Vec<DatatypeSort
             };
             cs.push(constructor);
         }
+        assert!(cs.len() > 0, "Empty cs vec");
+
         let clist = unsafe {
             Z3_mk_constructor_list(ctx.z3_ctx, num_cs.try_into().unwrap(), cs.as_mut_ptr())
         };
         clists.push(clist);
     }
+    assert!(clists.len() > 0, "Empty clist vec");
+
+    assert!(num == names.len());
+    assert!(num == clists.len());
     unsafe {
         Z3_mk_datatypes(
             ctx.z3_ctx,
             num.try_into().unwrap(),
             names.as_ptr(),
-            out.as_mut_ptr(),
+            out_ptr,
             clists.as_mut_ptr(),
-        )
+        );
     };
 
-    let mut datatype_sorts: Vec<DatatypeSort<'ctx>> = Vec::with_capacity(out.len());
-    for i in 0..out.len() {
-        let s = out[i];
+    let mut rebuilt: Vec<Z3_sort> = unsafe {
+        Vec::from_raw_parts(out_ptr, num, num)
+    };
+
+    assert!(rebuilt.len() > 0, "Empty rebuilt vec");
+
+    let mut datatype_sorts: Vec<DatatypeSort<'ctx>> = Vec::with_capacity(rebuilt.len());
+    for i in 0..rebuilt.len() {
+        let s = rebuilt[i];
         let d = &ds[i];
         let num_cs = d.constructors.len();
 
@@ -161,6 +176,8 @@ impl<'ctx> DatatypeBuilder<'ctx> {
     }
 
     pub fn finish(&self) -> DatatypeSort<'ctx> {
-        create_datatypes(&[self]).remove(0)
+        let mut dtypes = create_datatypes(&[self]);
+        assert!(dtypes.len() > 0);
+        dtypes.remove(0)
     }
 }
