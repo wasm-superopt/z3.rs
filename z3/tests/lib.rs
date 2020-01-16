@@ -199,10 +199,8 @@ fn function_ref_count() {
     let ctx = Context::new(&cfg);
     let solver = Solver::new(&ctx);
 
-    let int_sort = Sort::int(&ctx);
-
-    let _f = FuncDecl::new(&ctx, "f", &[&int_sort], &int_sort);
-    let _g = FuncDecl::new(&ctx, "g", &[&int_sort], &int_sort);
+    let _f = FuncDecl::new(&ctx, "f", &[Sort::int(&ctx)], Sort::int(&ctx));
+    let _g = FuncDecl::new(&ctx, "g", &[Sort::int(&ctx)], Sort::int(&ctx));
 
     assert_eq!(solver.check(), SatResult::Sat);
 }

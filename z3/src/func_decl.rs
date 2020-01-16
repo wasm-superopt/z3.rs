@@ -10,8 +10,8 @@ impl<'ctx> FuncDecl<'ctx> {
     pub fn new<S: Into<Symbol>>(
         ctx: &'ctx Context,
         name: S,
-        domain: &[&Sort<'ctx>],
-        range: &Sort<'ctx>,
+        domain: &[Sort<'ctx>],
+        range: Sort<'ctx>,
     ) -> Self {
         assert!(domain.iter().all(|s| s.ctx.z3_ctx == ctx.z3_ctx));
         assert_eq!(ctx.z3_ctx, range.ctx.z3_ctx);
@@ -51,8 +51,8 @@ impl<'ctx> FuncDecl<'ctx> {
     /// let f = FuncDecl::new(
     ///     &ctx,
     ///     "f",
-    ///     &[&Sort::int(&ctx), &Sort::real(&ctx)],
-    ///     &Sort::int(&ctx));
+    ///     &[Sort::int(&ctx), Sort::real(&ctx)],
+    ///     Sort::int(&ctx));
     /// assert_eq!(f.arity(), 2);
     /// ```
     pub fn arity(&self) -> usize {

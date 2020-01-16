@@ -1251,7 +1251,7 @@ impl<'ctx> Datatype<'ctx> {
 /// # let cfg = Config::new();
 /// # let ctx = Context::new(&cfg);
 /// # let solver = Solver::new(&ctx);
-/// let f = FuncDecl::new(&ctx, "f", &[&Sort::int(&ctx)], &Sort::int(&ctx));
+/// let f = FuncDecl::new(&ctx, "f", &[Sort::int(&ctx)], Sort::int(&ctx));
 ///
 /// let x = ast::Int::new_const(&ctx, "x");
 /// let f_x: ast::Int = f.apply(&[&x.clone().into()]).try_into().unwrap();
@@ -1310,7 +1310,7 @@ pub fn forall_const<'ctx>(
 /// # let cfg = Config::new();
 /// # let ctx = Context::new(&cfg);
 /// # let solver = Solver::new(&ctx);
-/// let f = FuncDecl::new(&ctx, "f", &[&Sort::int(&ctx)], &Sort::int(&ctx));
+/// let f = FuncDecl::new(&ctx, "f", &[Sort::int(&ctx)], Sort::int(&ctx));
 ///
 /// let x = ast::Int::new_const(&ctx, "x");
 /// let f_x: ast::Int = f.apply(&[&x.clone().into()]).try_into().unwrap();
