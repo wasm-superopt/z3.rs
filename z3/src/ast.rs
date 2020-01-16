@@ -1258,7 +1258,7 @@ impl<'ctx> Datatype<'ctx> {
 /// let f_x_pattern: Pattern = Pattern::new(&ctx, &[ &f_x.clone().into() ]);
 /// let forall: ast::Bool = ast::forall_const(
 ///     &ctx,
-///     &[&x.clone().into()],
+///     &[x.clone().into()],
 ///     &[&f_x_pattern],
 ///     &x._eq(&f_x).into()
 /// ).try_into().unwrap();
@@ -1272,7 +1272,7 @@ impl<'ctx> Datatype<'ctx> {
 /// ```
 pub fn forall_const<'ctx>(
     ctx: &'ctx Context,
-    bounds: &[&Dynamic<'ctx>],
+    bounds: &[Dynamic<'ctx>],
     patterns: &[&Pattern<'ctx>],
     body: &Dynamic<'ctx>,
 ) -> Dynamic<'ctx> {
